@@ -5,12 +5,33 @@
 # import the necessary packages
 from collections import deque
 from imutils.video import VideoStream
+from enum import Enum
 import mediapipe as mpb
 import numpy as np
 import argparse
 import cv2
 import imutils
 import time
+
+
+
+
+class Collision(Enum):
+    NO_COLLISION = 0
+    COLLISION = 1
+
+
+
+class CollisionParts(Enum):
+	NULL = None
+	RIGHT_HAND__RIGHT_SHOULDER = [('right_shoulder', 'right_hand'), ('right_hand', 'right_shoulder')]
+	HEAD__RIGHT_HAND = [('head', 'right_hand'), ('right_hand', 'head')]
+	LEFT_HAND__LEFT_SHOULDER = [('left_shoulder', 'left_hand'), ('left_hand', 'left_shoulder')]
+	HEAD__LEFT_HAND = [('head', 'left_hand'), ('left_hand', 'head')]
+
+
+state_collision = Collision.NO_COLLISION
+parts_collision = CollisionParts.NULL
 
 
 # SHOW_BODY = True
@@ -178,6 +199,13 @@ else: vs = cv2.VideoCapture(args["video"])
 time.sleep(2.0)
 
 # keep looping
+collision_count = 0
+
+
+
+box_collided = []
+
+
 while True:
 	# grab the current frame
 	frame = vs.read()
@@ -196,6 +224,7 @@ while True:
 
 
 	if SHOW_BODY:
+
 		# PART HUMAN TRACKING
 		# Convert the frame to RGB
 		frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -256,11 +285,25 @@ while True:
 						x20, y20 = max(x2 - box_size // 2, 0), max(y2 - box_size // 2, 0)
 						x21, y21 = min(x2 + box_size // 2, frame.shape[1]), min(y2 + box_size // 2, frame.shape[0])
 						cv2.rectangle(frame, (x20, y20), (x21, y21), box_color, -1)
-						if x11 >= x20 and x10 <= x21 and y11 >= y20 and y10 <= y21:
+
+						if x11 >= x20 and x10 <= x21 and y11 >= y20 and y10 <= y21: #THIS IF STATEMENT MEANS THERES A COLLISION
 							overlapping_boxes.append((part1, part2))
 							cv2.putText(frame, "Overlap", (int((x1 + x2) / 2), int((y1 + y2) / 2)), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 4, cv2.LINE_AA)
+							print(overlapping_boxes)
+							if (state_collision == Collision.COLLISION):
+								if box_collided != overlapping_boxes:
+									state_collision = Collision.NO_COLLISION
 
-			# Print which two boxes have collided
+							elif state_collision == Collision.NO_COLLISION:
+								if box_collided != overlapping_boxes:
+									if len(box_collided) <= 2:
+										collision_count += 1
+								box_collided = overlapping_boxes
+								state_collision = Collision.COLLISION
+
+
+
+
 
 			# Print which two boxes have collided
 			if len(overlapping_boxes) > 0:
@@ -270,6 +313,10 @@ while True:
 					text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
 					cv2.rectangle(frame, (0, 0), (text_size[0] + 10, text_size[1] + 10), (0, 0, 255), -1)
 					cv2.putText(frame, text, (10, text_size[1] + 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+
+			cv2.putText(frame, f"Collisions: {collision_count}", (frame.shape[1]-300, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+
 
 
 
