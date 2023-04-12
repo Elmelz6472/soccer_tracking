@@ -13,7 +13,7 @@ box_color = (255, 255, 255)
 part_labels = {'right_shoulder': 'RS', 'left_shoulder': 'LS', 'head': 'H', 'right_foot': 'RF', 'left_foot': 'LF', 'right_wrist': 'RH', 'left_hand': 'LH', 'right_knee': 'RK', 'left_knee': 'LK'}
 
 # Open the video file
-# cap = cv2.VideoCapture("../modeless/new_kickups.mp4")
+
 cap = cv2.VideoCapture(0)
 
 

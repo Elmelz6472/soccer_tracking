@@ -38,8 +38,8 @@ parts_collision = CollisionParts.NULL
 
 
 # SHOW_BODY = True
-SHOW_BALL = True
-SHOW_BODY = False
+SHOW_BALL = False
+SHOW_BODY = True
 
 
 def show_body(frame):
@@ -156,7 +156,7 @@ def show_ball(frame):
     # resize the frame, blur it, and convert it to the HSV
     # color space
     frame = imutils.resize(frame)
-    blurred = cv2.GaussianBlur(frame, (15, 15), 0)
+    blurred = cv2.GaussianBlur(frame, (11, 11), 0)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
     # construct a mask for the color "green", then perform
@@ -164,15 +164,12 @@ def show_ball(frame):
     # blobs left in the mask
 
     # Create a 5x5 elliptical structuring element
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (13, 13))
 
     mask = cv2.inRange(hsv, greenLower, greenUpper)
     # mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-    mask = cv2.dilate(mask, kernel, iterations=6)
-    mask = cv2.erode(mask, kernel, iterations=6)
-
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    mask = cv2.dilate(mask, kernel, iterations=4)
+    mask = cv2.erode(mask, kernel, iterations=4)
 
     cv2.imshow("Mask", mask)
 
@@ -197,8 +194,11 @@ def show_ball(frame):
             if radius > 30:
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
-                cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
-                cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                # cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
+                # cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                x, y, w, h = cv2.boundingRect(c)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 255), 2)
+
         except ZeroDivisionError:
             pass
 
